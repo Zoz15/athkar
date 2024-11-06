@@ -35,3 +35,5 @@ Widget chickImage = Image.asset(
 );
 
 List<Widget> chickImages = [];
+
+const String mosqueVideo = 'assets/videos/mosque_transition.mp4';

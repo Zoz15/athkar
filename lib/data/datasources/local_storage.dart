@@ -21,4 +21,12 @@ class LocalStorage {
         .toList();
     await _prefs.setStringList(_dhikrKey, dhikrListJson);
   }
+
+  Future<bool> getDarkMode() async {
+    return _prefs.getBool('darkMode') ?? false;
+  }
+
+  Future<void> saveDarkMode(bool isDark) async {
+    await _prefs.setBool('darkMode', isDark);
+  }
 }

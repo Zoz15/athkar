@@ -25,14 +25,30 @@ class MyApp extends StatelessWidget {
     Get.put(LocalStorage(prefs));
     
     return GetMaterialApp(
-      
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Arial',
-        primarySwatch: Colors.teal,
-        scaffoldBackgroundColor: Colors.black,
+      theme: ThemeData.light().copyWith(
+        primaryColor: Colors.teal,
+        colorScheme: ColorScheme.light(
+          primary: Colors.teal,
+          secondary: Colors.tealAccent,
+          surface: Colors.white,
+          background: Colors.white,
+          onBackground: Colors.black87,
+          onSurface: Colors.black87,
+        ),
       ),
-      home:  HomeScreen(),
+      darkTheme: ThemeData.dark().copyWith(
+        primaryColor: Colors.teal,
+        colorScheme: ColorScheme.dark(
+          primary: Colors.teal,
+          secondary: Colors.tealAccent,
+          surface: Colors.grey[900]!,
+          background: Colors.black,
+          onBackground: Colors.white,
+          onSurface: Colors.white,
+        ),
+      ),
+      home: const HomeScreen(),
     );
   }
 }

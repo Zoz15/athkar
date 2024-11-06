@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import 'package:athkar/presentation/controllers/dhikr_controller.dart';
+import 'package:video_player/video_player.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -20,41 +21,60 @@ class HomeScreen extends StatelessWidget {
     final controller = Get.put(AppController());
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: Obx(() => Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(
-                    backgroundImages[controller.currentBackground.value]),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height -
-                      MediaQuery.of(context).padding.top -
-                      MediaQuery.of(context).padding.bottom,
-                  child: Column(
-                    children: [
-                      _buildHeader(),
-                      const SizedBox(height: 16),
-                      _buildDhikrSelector(),
-                      const Spacer(),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 40),
-                        child: _buildCounter(),
+      body: Stack(
+        children: [
+          // طبقة الفيديو
+          Positioned.fill(
+            child: Obx(() => controller.isVideoInitialized.value
+                ? AspectRatio(
+                    aspectRatio: controller.videoController.value.aspectRatio,
+                    child: FittedBox(
+                      fit: BoxFit.cover,
+                      child: SizedBox(
+                        width: controller.videoController.value.size.width,
+                        height: controller.videoController.value.size.height,
+                        child: VideoPlayer(controller.videoController),
                       ),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
+                    ),
+                  )
+                : Container(color: Colors.black)),
+          ),
+          // طبقة التعتيم للقراءة بشكل أفضل
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.3),
+            ),
+          ),
+          // محتوى التطبيق
+          SafeArea(
+            child: SingleChildScrollView(
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom,
+                child: Column(
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 16),
+                    _buildDhikrSelector(),
+                    const Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 40),
+                      child: _buildCounter(),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
             ),
-          )),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildHeader() {
+    final controller = Get.find<AppController>();
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: ClipRRect(
@@ -82,22 +102,75 @@ class HomeScreen extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    DateFormat('dd.MM.yyyy').format(DateTime.now()),
-                    style: const TextStyle(color: Colors.white),
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        DateFormat('dd.MM.yyyy').format(DateTime.now()),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.more_vert, color: Colors.white),
+                      onPressed: () => _showSettingsDialog(),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showSettingsDialog() {
+    final controller = Get.find<AppController>();
+    Get.dialog(
+      AlertDialog(
+        title: const Text('الإعدادات'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.dark_mode),
+              title: const Text('الوضع المظلم'),
+              trailing: Obx(() => Switch(
+                value: controller.isDarkMode.value,
+                onChanged: (value) {
+                  controller.toggleTheme();
+                  Get.back();
+                },
+              )),
+            ),
+            // يمكنك إضافة المزيد من الإعدادات هنا
+            
+            // إضافة مسافة
+            const SizedBox(height: 20),
+            
+            // إضافة النص في الأسفل
+            const Text(
+              'Made with ❤️ by Axon',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('إغلاق'),
+          ),
+        ],
       ),
     );
   }
@@ -422,7 +495,7 @@ class HomeScreen extends StatelessWidget {
                               AlertDialog(
                                 title: const Text('تأكيد الحذف'),
                                 content: const Text(
-                                    'هل أنت متأكد من حذف هذا الذكر؟'),
+                                    'هل أنت متأكد من ذف هذا الكر؟'),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Get.back(),
@@ -489,7 +562,7 @@ class HomeScreen extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Get.back(),
-                child: const Text('حسناً'),
+                child: const Text('حسنا��'),
               ),
             ],
           ),
@@ -528,22 +601,48 @@ class HomeScreen extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    Obx(() => Image.asset(
-                          clickerImages[controller.clickerImageIndex.value],
-                          width: 240,
-                          height: 240,
-                        )),
-                    Obx(() => Padding(
-                          padding: const EdgeInsets.only(bottom: 62),
-                          child: Text(
-                            '${controller.clickerCounter.value}',
-                            style: const TextStyle(
-                              fontSize: 40,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                    Obx(() => AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 500),
+                      transitionBuilder: (Widget child, Animation<double> animation) {
+                        return RotationTransition(
+                          turns: Tween<double>(
+                            begin: 0.5,
+                            end: 1.0,
+                          ).animate(animation),
+                          child: FadeTransition(
+                            opacity: animation,
+                            child: child,
                           ),
-                        )),
+                        );
+                      },
+                      child: Image.asset(
+                        clickerImages[controller.clickerImageIndex.value],
+                        key: ValueKey<int>(controller.clickerImageIndex.value),
+                        width: 240,
+                        height: 240,
+                      ),
+                    )),
+                    Obx(() => AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 300),
+                      style: TextStyle(
+                        fontSize: 40,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 10,
+                            color: Colors.black.withOpacity(0.3),
+                            offset: const Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 62),
+                        child: Text(
+                          '${controller.clickerCounter.value}',
+                        ),
+                      ),
+                    )),
                   ],
                 ),
               ),

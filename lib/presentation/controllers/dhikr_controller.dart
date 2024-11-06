@@ -5,6 +5,7 @@ import 'package:athkar/data/datasources/local_storage.dart';
 import 'package:athkar/models/dhikr_item.dart';
 import 'package:confetti/confetti.dart';
 import 'dart:math' show Random, pi;
+import 'package:video_player/video_player.dart';
 
 class AppController extends GetxController {
   final _storage = Get.find<LocalStorage>();
@@ -19,12 +20,62 @@ class AppController extends GetxController {
   // إضافة متغير للخلفية الحالية
   final currentBackground = 0.obs;
 
+  // إضافة متغير للوضع المظلم
+  final isDarkMode = false.obs;
+
+  late VideoPlayerController videoController;
+  final isVideoInitialized = false.obs;
+
+  bool get isNightTime {
+    final now = DateTime.now();
+    // اعتبار الليل من 6 مساءً حتى 6 صباحاً
+    return now.hour >= 18 || now.hour < 6;
+  }
+
   @override
   void onInit() {
     super.onInit();
-    // تغيير الخلفية عشوائياً عند بدء التطبيق
+    initializeVideoPlayer();
+    loadThemeMode();
     changeBackground();
     loadDhikrs();
+  }
+
+  Future<void> initializeVideoPlayer() async {
+    videoController = VideoPlayerController.asset(mosqueVideo);
+    await videoController.initialize();
+    
+    final duration = videoController.value.duration;
+    
+    // عند بدء التطبيق، تشغيل الفيديو والثيم بناءً على الوقت
+    if (isNightTime) {
+      // إذا كان ليلاً، نبدأ من النهار ونتحول لليل
+      await videoController.seekTo(Duration.zero); // نبدأ من الليل
+      videoController.play();
+      videoController.setPlaybackSpeed(1.0); // نتحرك للنهار
+      
+      await Future.delayed(duration);
+      videoController.pause();
+      
+      // تعيين الوضع المظلم
+      isDarkMode.value = true;
+      Get.changeThemeMode(ThemeMode.dark);
+    } else {
+      // إذا كان نهاراً، نبدأ من الليل ونتحول للنهار
+      await videoController.seekTo(duration); // نبدأ من النهار
+      videoController.play();
+      videoController.setPlaybackSpeed(-1.0); // نتحرك لليل
+      
+      await Future.delayed(duration);
+      videoController.pause();
+      
+      // تعيين الوضع العادي
+      isDarkMode.value = false;
+      Get.changeThemeMode(ThemeMode.light);
+    }
+    
+    isVideoInitialized.value = true;
+    update();
   }
 
   // دالة لتغيير الخلفية عشوائياً
@@ -363,5 +414,48 @@ class AppController extends GetxController {
         ],
       ),
     );
+  }
+
+  // تحميل حالة الثيم
+  Future<void> loadThemeMode() async {
+    final darkMode = await _storage.getDarkMode();
+    isDarkMode.value = darkMode;
+    Get.changeThemeMode(darkMode ? ThemeMode.dark : ThemeMode.light);
+  }
+
+  // تحديث الثيم
+  void toggleTheme() async {
+    isDarkMode.value = !isDarkMode.value;
+    _storage.saveDarkMode(isDarkMode.value);
+    
+    final duration = videoController.value.duration;
+    
+    if (isDarkMode.value) {
+      // التحول للوضع الليلي - من النهار لليل
+      await videoController.seekTo(duration); // نبدأ من النهار
+      videoController.play();
+      videoController.setPlaybackSpeed(-1.0); // نتحرك لليل
+      
+      await Future.delayed(duration);
+      videoController.pause();
+      
+      Get.changeThemeMode(ThemeMode.dark);
+    } else {
+      // التحول للوضع النهاري - من الليل للنهار
+      await videoController.seekTo(Duration.zero); // نبدأ من الليل
+      videoController.play();
+      videoController.setPlaybackSpeed(1.0); // نتحرك للنهار
+      
+      await Future.delayed(duration);
+      videoController.pause();
+      
+      Get.changeThemeMode(ThemeMode.light);
+    }
+  }
+
+  @override
+  void onClose() {
+    videoController.dispose();
+    super.onClose();
   }
 }
