@@ -11,23 +11,19 @@ class DhikrItem {
     this.lastUpdated,
   });
 
-  factory DhikrItem.fromJson(Map<String, dynamic> json) {
-    return DhikrItem(
-      text: json['text'] as String,
-      target: json['target'] as int,
-      current: json['current'] as int,
-      lastUpdated: json['lastUpdated'] != null 
-        ? DateTime.parse(json['lastUpdated'] as String)
-        : null,
-    );
-  }
+  Map<String, dynamic> toJson() => {
+    'text': text,
+    'target': target,
+    'current': current,
+    'lastUpdated': lastUpdated?.toIso8601String(),
+  };
 
-  Map<String, dynamic> toJson() {
-    return {
-      'text': text,
-      'target': target,
-      'current': current,
-      'lastUpdated': lastUpdated?.toIso8601String(),
-    };
-  }
+  factory DhikrItem.fromJson(Map<String, dynamic> json) => DhikrItem(
+    text: json['text'],
+    target: json['target'],
+    current: json['current'] ?? 0,
+    lastUpdated: json['lastUpdated'] != null 
+      ? DateTime.parse(json['lastUpdated'])
+      : null,
+  );
 } 

@@ -1,5 +1,6 @@
 import 'package:athkar/presentation/screens/home_screen.dart';
 import 'package:athkar/data/datasources/local_storage.dart';
+import 'package:athkar/var.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,10 +19,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    height = MediaQuery.of(context).size.height;
+    width = MediaQuery.of(context).size.width;
     // Initialize LocalStorage
     Get.put(LocalStorage(prefs));
     
     return GetMaterialApp(
+      
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: 'Arial',

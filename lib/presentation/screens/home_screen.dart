@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:athkar/models/dhikr_item.dart';
@@ -19,192 +20,313 @@ class HomeScreen extends StatelessWidget {
     final controller = Get.put(AppController());
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(backgroundImages[0]),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height -
-                  MediaQuery.of(context).padding.top -
-                  MediaQuery.of(context).padding.bottom,
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  _buildDhikrSelector(),
-                  const Spacer(),
-                  _buildCounter(),
-                  const Spacer(),
-                  _buildTargetControl(),
-                  const SizedBox(height: 20),
-                ],
+      body: Obx(() => Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(
+                    backgroundImages[controller.currentBackground.value]),
+                fit: BoxFit.cover,
               ),
             ),
-          ),
-        ),
-      ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height -
+                      MediaQuery.of(context).padding.top -
+                      MediaQuery.of(context).padding.bottom,
+                  child: Column(
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 16),
+                      _buildDhikrSelector(),
+                      const Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 40),
+                        child: _buildCounter(),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          )),
     );
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'Tasbeeh Counter',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
+              color: Colors.black.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.1),
+                width: 1,
+              ),
             ),
-            child: Text(
-              DateFormat('dd.MM.yyyy').format(DateTime.now()),
-              style: const TextStyle(color: Colors.white),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Tasbeeh Counter',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    DateFormat('dd.MM.yyyy').format(DateTime.now()),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildDhikrSelector() {
     final controller = Get.find<AppController>();
-    return Column(
-      children: [
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Obx(() => Text(
-                          controller.selectedDhikr.value?.text ?? 'اختر الذكر',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        )),
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.add, color: Colors.white),
-                        onPressed: () => _showAddDhikrDialog(),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.arrow_drop_down,
-                            color: Colors.white),
-                        onPressed: () => _showDhikrList(),
-                      ),
-                    ],
-                  ),
-                ],
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.1),
+                width: 1,
               ),
-              Obx(
-                () => controller.selectedDhikr.value != null
-                    ? Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            AnimatedFlipCounter(
-                              value: controller.clickerCounter.value,
-                              textStyle: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              ' / ${controller.selectedDhikr.value!.target}',
+            ),
+            child: Column(
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => _showDhikrList(),
+                        child: Obx(() => Text(
+                              controller.selectedDhikr.value?.text ??
+                                  'اختر الذكر',
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                height: 1.5,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
+                            )),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.add, color: Colors.white),
+                          onPressed: () => _showAddDhikrDialog(),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_drop_down,
+                              color: Colors.white),
+                          onPressed: () => _showDhikrList(),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Obx(
+                  () => controller.selectedDhikr.value != null
+                      ? Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  AnimatedFlipCounter(
+                                    value: controller.clickerCounter.value,
+                                    textStyle: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    ' / ${controller.selectedDhikr.value!.target}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 8),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: TweenAnimationBuilder<double>(
+                                  duration: const Duration(milliseconds: 250),
+                                  curve: Curves.easeInOut,
+                                  tween: Tween<double>(
+                                    begin: 0,
+                                    end:
+                                        controller.selectedDhikr.value!.target >
+                                                0
+                                            ? controller.clickerCounter.value /
+                                                controller
+                                                    .selectedDhikr.value!.target
+                                            : 0,
+                                  ),
+                                  builder: (context, value, _) =>
+                                      LinearProgressIndicator(
+                                    value: value,
+                                    minHeight: 6,
+                                    backgroundColor:
+                                        Colors.white.withOpacity(0.2),
+                                    valueColor:
+                                        AlwaysStoppedAnimation<Color>(value == 0
+                                            ? Colors.black
+                                            : value <= 0.33
+                                                ? const Color(0xFF2E7D32)
+                                                : value <= 0.66
+                                                    ? const Color(0xFF388E3C)
+                                                    : const Color(0xFF43A047)),
+                                  ),
+                                ),
                               ),
                             ),
                           ],
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 
   void _showAddDhikrDialog() {
-    final TextEditingController textController = TextEditingController();
-    final TextEditingController targetController = TextEditingController();
+    final textController = TextEditingController();
+    final targetController = TextEditingController();
+    final controller = Get.find<AppController>();
 
     Get.dialog(
-      SingleChildScrollView(
-        child: AlertDialog(
-          title: const Text('إضافة ذكر جديد'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: textController,
-                decoration: const InputDecoration(labelText: 'الذكر'),
-                textInputAction: TextInputAction.next,
+      AlertDialog(
+        title: const Text('إضافة ذكر جديد'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: textController,
+              decoration: const InputDecoration(
+                labelText: 'نص الذكر',
+                hintText: 'ادخل نص الذكر',
               ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: targetController,
-                decoration: const InputDecoration(labelText: 'العدد المستهدف'),
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.done,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Get.back(),
-              child: const Text('إلغاء'),
             ),
-            TextButton(
-              onPressed: () {
-                if (textController.text.isNotEmpty &&
-                    targetController.text.isNotEmpty) {
-                  final controller = Get.find<AppController>();
-                  controller.addDhikr(
-                    DhikrItem(
-                      text: textController.text,
-                      target: int.parse(targetController.text),
-                    ),
-                  );
-                  Get.back();
-                }
-              },
-              child: const Text('إضافة'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: targetController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'عدد المرات',
+                hintText: 'ادخل عدد المرات',
+              ),
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (textController.text.isEmpty &&
+                  targetController.text.isEmpty) {
+                Get.snackbar(
+                  'تنبيه',
+                  'الرجاء إدخال نص الذكر وعدد المرات',
+                  backgroundColor: Colors.red.withOpacity(0.1),
+                  colorText: Colors.white,
+                  snackPosition: SnackPosition.TOP,
+                );
+                return;
+              }
+
+              if (textController.text.isEmpty) {
+                Get.snackbar(
+                  'تنبيه',
+                  'الرجاء إدخال نص الذكر',
+                  backgroundColor: Colors.red.withOpacity(0.1),
+                  colorText: Colors.white,
+                  snackPosition: SnackPosition.TOP,
+                );
+                return;
+              }
+
+              if (targetController.text.isEmpty) {
+                Get.snackbar(
+                  'تنبيه',
+                  'الرجاء إدخال عدد المرات',
+                  backgroundColor: Colors.red.withOpacity(0.1),
+                  colorText: Colors.white,
+                  snackPosition: SnackPosition.TOP,
+                );
+                return;
+              }
+
+              final target = int.tryParse(targetController.text);
+              if (target == null || target <= 0) {
+                Get.snackbar(
+                  'تنبيه',
+                  'الرجاء إدخال عدد صحيح موجب',
+                  backgroundColor: Colors.red.withOpacity(0.1),
+                  colorText: Colors.white,
+                  snackPosition: SnackPosition.TOP,
+                );
+                return;
+              }
+
+              controller.addDhikr(DhikrItem(
+                text: textController.text,
+                target: target,
+                current: 0,
+                lastUpdated: DateTime.now(),
+              ));
+
+              Get.back();
+            },
+            child: const Text('إضافة'),
+          ),
+        ],
       ),
     );
   }
@@ -214,52 +336,125 @@ class HomeScreen extends StatelessWidget {
     Get.dialog(
       AlertDialog(
         title: const Text('قائمة الأذكار'),
-        content: SingleChildScrollView(
-          child: Obx(() => Column(
+        content: Obx(() {
+          if (controller.dhikrList.isEmpty) {
+            return Container(
+              width: double.maxFinite,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: controller.dhikrList.asMap().entries.map((entry) {
-                  final dhikr = entry.value;
-                  return Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.grey.withOpacity(0.1),
+                children: [
+                  const Icon(
+                    Icons.note_alt_outlined,
+                    size: 50,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'لا يوجد أذكار حالياً',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
                     ),
-                    child: ListTile(
-                      title: Text(
-                        dhikr.text,
-                        style: const TextStyle(fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Get.back();
+                      _showAddDhikrDialog();
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('إضافة ذكر جديد'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
                       ),
-                      subtitle: LinearProgressIndicator(
-                        value:
-                            dhikr.target > 0 ? dhikr.current / dhikr.target : 0,
-                        backgroundColor: Colors.grey.withOpacity(0.2),
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '${dhikr.current}/${dhikr.target}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => controller.removeDhikr(entry.key),
-                          ),
-                        ],
-                      ),
-                      onTap: () {
-                        controller.selectDhikr(dhikr);
-                        Get.back();
-                      },
                     ),
-                  );
-                }).toList(),
-              )),
-        ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // عرض القائمة العادية إذا كان هناك أذكار
+          return SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: controller.dhikrList.asMap().entries.map((entry) {
+                final dhikr = entry.value;
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.grey.withOpacity(0.1),
+                  ),
+                  child: ListTile(
+                    title: Text(
+                      dhikr.text,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    subtitle: LinearProgressIndicator(
+                      value:
+                          dhikr.target > 0 ? dhikr.current / dhikr.target : 0,
+                      backgroundColor: Colors.grey.withOpacity(0.2),
+                      valueColor:
+                          const AlwaysStoppedAnimation<Color>(Colors.teal),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${dhikr.current}/${dhikr.target}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            Get.back();
+                            Get.dialog(
+                              AlertDialog(
+                                title: const Text('تأكيد الحذف'),
+                                content: const Text(
+                                    'هل أنت متأكد من حذف هذا الذكر؟'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Get.back(),
+                                    child: const Text('إلغاء'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Get.back();
+                                      controller.removeDhikr(entry.key);
+                                    },
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.red,
+                                    ),
+                                    child: const Text('حذف'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    onTap: () {
+                      controller.selectDhikr(dhikr);
+                      Get.back();
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -305,191 +500,93 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildCounter() {
     final controller = Get.find<AppController>();
-    return Stack(
-      alignment: Alignment.center,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Image.asset(
-          'assets/images/clicker/1.png', // todo: change to dynamic image
-          width: 250,
-          height: 250,
-        ),
-        Obx(() => Padding(
-              padding: const EdgeInsets.only(bottom: 60),
-              child: Text(
-                '${controller.clickerCounter.value}',
-                style: const TextStyle(
-                  fontSize: 40,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+        _buildSmallCounterIcons(() => controller.setClickerImageIndex(),
+            'assets/images/colors.png'),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(140),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: GestureDetector(
+              onTap: () {
+                controller.setClickerCounter();
+                HapticFeedback.mediumImpact();
+              },
+              child: Container(
+                height: 280,
+                width: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withOpacity(0.2),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.1),
+                    width: 1,
+                  ),
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Obx(() => Image.asset(
+                          clickerImages[controller.clickerImageIndex.value],
+                          width: 240,
+                          height: 240,
+                        )),
+                    Obx(() => Padding(
+                          padding: const EdgeInsets.only(bottom: 62),
+                          child: Text(
+                            '${controller.clickerCounter.value}',
+                            style: const TextStyle(
+                              fontSize: 40,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )),
+                  ],
                 ),
               ),
-            )),
-        // Positioned(
-        //   bottom: 20,
-        //   child: InkWell(
-        //     onTap: () => controller.setClickerCounter(),
-        //     child: Container(
-        //       padding: const EdgeInsets.symmetric(
-        //         horizontal: 30,
-        //         vertical: 10,
-        //       ),
-        //       decoration: BoxDecoration(
-        //         color: Colors.white,
-        //         borderRadius: BorderRadius.circular(25),
-        //       ),
-        //       child: const Text(
-        //         'Click',
-        //         style: TextStyle(
-        //           fontSize: 20,
-        //           fontWeight: FontWeight.bold,
-        //         ),
-        //       ),
-        //     ),
-        //   ),
-        // ),
+            ),
+          ),
+        ),
+        _buildSmallCounterIcons(
+            () => controller.clickerCounterReset(), 'assets/images/replay.png'),
       ],
     );
   }
 
-  Widget _buildTargetControl() {
-    final controller = Get.find<AppController>();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(15),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 10),
-            child: Container(
-              height: 50,
-              width: 50,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
+  Widget _buildSmallCounterIcons(onTap, image) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Container(
+            height: 50,
+            width: 50,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: Colors.black.withOpacity(0.2),
+              border: Border.all(
                 color: Colors.white.withOpacity(0.1),
+                width: 1,
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: InkWell(
-                  onTap: () {
-                    controller.setClickerImageIndex();
-                  },
-                  child: Image.asset(
-                    'assets/images/colors.png',
-                    fit: BoxFit.cover,
-                  ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: InkWell(
+                onTap: onTap,
+                child: Image.asset(
+                  image,
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
           ),
         ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 10),
-            child: Container(
-                height: height / 1.95,
-                width: width - 200,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Colors.white.withOpacity(0.1),
-                ),
-                child: Stack(
-                  children: [
-                    // Padding(
-                    //   padding: const EdgeInsets.only(bottom: 10),
-                    //   child: Align(
-                    //     alignment: Alignment.bottomCenter,
-                    //     child: Obx(
-                    //       () => Row(
-                    //         crossAxisAlignment: CrossAxisAlignment.end,
-                    //         children: controller.chickImages.toList(),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                    Obx(
-                      () => Column(
-                        children: [
-                          Image.asset(
-                            clickerImages[controller.clickerImageIndex.value],
-                            height: height / 2.2,
-                            fit: BoxFit.cover,
-                          ),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: controller.chickImages.toList(),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(top: height / 8.9),
-                      child: Center(
-                          child: Column(
-                        children: [
-                          Obx(() => AnimatedFlipCounter(
-                                value: controller.clickerCounter.value,
-                                curve: Curves.easeInOut,
-                                duration: const Duration(milliseconds: 200),
-                                textStyle: const TextStyle(
-                                  fontSize: 60,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: -1.0,
-                                  color: Colors.white,
-                                ),
-                              )),
-                          const SizedBox(height: 10),
-                          InkWell(
-                            onTap: () {
-                              HapticFeedback.mediumImpact();
-                              //SystemSound.play(SystemSoundType.click);
-                              controller.setClickerCounter();
-                            },
-                            child: Container(
-                              height: 150,
-                              width: 150,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                //color: Colors.white.withOpacity(0.5),
-                                //borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          )
-                        ],
-                      )),
-                    ),
-                  ],
-                )),
-          ),
-        ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(15),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 10),
-            child: Container(
-              height: 50,
-              width: 50,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                color: Colors.white.withOpacity(0.1),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: InkWell(
-                  onTap: () {
-                    controller.clickerCounterReset();
-                  },
-                  child: Image.asset(
-                    'assets/images/replay.png',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
