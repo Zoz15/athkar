@@ -33,7 +33,8 @@ class AppController extends GetxController {
   // وقت آخر تغيير للثيم
   final lastThemeChangeTime = Rxn<DateTime>();
 
-  static const String themeTransitionVideo = 'assets/videos/theme_transition.mp4';
+  static const String themeTransitionVideo =
+      'assets/videos/theme_transition.mp4';
 
   bool get isNightTime {
     final now = DateTime.now();
@@ -47,13 +48,14 @@ class AppController extends GetxController {
     await loadThemeMode();
     await initializeVideo();
     await loadDhikrs();
+    await checkAndUpdateDayNightTheme();
   }
 
   Future<void> initializeVideo() async {
     try {
       videoController = VideoPlayerController.asset(themeTransitionVideo);
       await videoController.initialize();
-      
+
       // تحديد نقطة البداية الصحيحة للوضع المظلم
       if (isDarkMode.value) {
         // إذا كان الوضع مظلم، نضع الفيديو عند الثانية 5
@@ -62,7 +64,7 @@ class AppController extends GetxController {
         // إذا كان الوضع عادي، نضع الفيديو عند البداية
         await videoController.seekTo(Duration.zero);
       }
-      
+
       isVideoInitialized.value = true;
       videoController.addListener(_videoListener);
       update();
@@ -73,9 +75,9 @@ class AppController extends GetxController {
 
   void _videoListener() {
     if (!videoController.value.isPlaying) return;
-    
+
     final position = videoController.value.position;
-    
+
     if (!isDarkMode.value && position >= const Duration(seconds: 5)) {
       // إيقاف عند الثانية 5 للوضع المظلم
       videoController.pause();
@@ -103,14 +105,54 @@ class AppController extends GetxController {
     int newIndex;
     do {
       newIndex = random.nextInt(backgroundImages.length);
-    } while (newIndex == currentBackground.value && backgroundImages.length > 1);
+    } while (
+        newIndex == currentBackground.value && backgroundImages.length > 1);
     currentBackground.value = newIndex;
   }
 
   Future<void> loadDhikrs() async {
     final items = await _storage.getDhikrs();
+
+    // إذا كانت القائمة فارغة (أول تنزيل)، نضيف أذكار افتراضية
+    if (items.isEmpty) {
+      final defaultDhikrs = [
+        DhikrItem(
+          text: 'سبحان الله وبحمده',
+          target: 33,
+          current: 0,
+          lastUpdated: DateTime.now(),
+        ),
+        DhikrItem(
+          text: 'لا إله إلا الله',
+          target: 33,
+          current: 0,
+          lastUpdated: DateTime.now(),
+        ),
+        DhikrItem(
+          text: 'الله أكبر',
+          target: 33,
+          current: 0,
+          lastUpdated: DateTime.now(),
+        ),
+        DhikrItem(
+          text: 'أستغفر الله',
+          target: 33,
+          current: 0,
+          lastUpdated: DateTime.now(),
+        ),
+      ];
+
+      items.addAll(defaultDhikrs);
+      await _storage.saveDhikrs(items);
+    }
+
     _resetExpiredDhikrs(items);
     dhikrList.value = items;
+
+    // تحديد الذكر الافتراضي كذكر مختار
+    if (selectedDhikr.value == null && items.isNotEmpty) {
+      selectedDhikr.value = items.first;
+    }
   }
 
   void _resetExpiredDhikrs(List<DhikrItem> items) {
@@ -223,7 +265,7 @@ class AppController extends GetxController {
             alignment: Alignment.topLeft,
             child: ConfettiWidget(
               confettiController: confettiController,
-              blastDirection: pi/2,
+              blastDirection: pi / 2,
               blastDirectionality: BlastDirectionality.directional,
               emissionFrequency: 0.3,
               numberOfParticles: 10,
@@ -246,7 +288,7 @@ class AppController extends GetxController {
             alignment: Alignment.topCenter,
             child: ConfettiWidget(
               confettiController: confettiController,
-              blastDirection: pi/2,
+              blastDirection: pi / 2,
               blastDirectionality: BlastDirectionality.directional,
               emissionFrequency: 0.3,
               numberOfParticles: 10,
@@ -269,7 +311,7 @@ class AppController extends GetxController {
             alignment: Alignment.topRight,
             child: ConfettiWidget(
               confettiController: confettiController,
-              blastDirection: pi/2,
+              blastDirection: pi / 2,
               blastDirectionality: BlastDirectionality.directional,
               emissionFrequency: 0.3,
               numberOfParticles: 10,
@@ -292,7 +334,7 @@ class AppController extends GetxController {
             alignment: const Alignment(-0.5, -1),
             child: ConfettiWidget(
               confettiController: confettiController,
-              blastDirection: pi/2,
+              blastDirection: pi / 2,
               blastDirectionality: BlastDirectionality.directional,
               emissionFrequency: 0.3,
               numberOfParticles: 10,
@@ -315,7 +357,7 @@ class AppController extends GetxController {
             alignment: const Alignment(0.5, -1),
             child: ConfettiWidget(
               confettiController: confettiController,
-              blastDirection: pi/2,
+              blastDirection: pi / 2,
               blastDirectionality: BlastDirectionality.directional,
               emissionFrequency: 0.3,
               numberOfParticles: 10,
@@ -410,7 +452,7 @@ class AppController extends GetxController {
 
   void confirmReset() {
     if (selectedDhikr.value == null) return;
-    
+
     Get.dialog(
       AlertDialog(
         title: const Text('تأكيد إعادة التعيين'),
@@ -452,7 +494,7 @@ class AppController extends GetxController {
         // التحول للوضع المظلم (من 0 إلى 5)
         await videoController.seekTo(Duration.zero);
       }
-      
+
       isVideoPlaying.value = true;
       await videoController.play();
       update();
@@ -460,6 +502,46 @@ class AppController extends GetxController {
       print('Error in toggleTheme: $e');
       isVideoPlaying.value = false;
       update();
+    }
+  }
+
+  Future<void> checkAndUpdateDayNightTheme() async {
+    final lastChange = await _storage.getLastThemeChangeTime();
+    final now = DateTime.now();
+    final isNight = now.hour >= 18 || now.hour < 6;
+
+    // تحقق مما إذا كان آخر تغيير في نفس اليوم ونفس الفترة (ليلاً أو نهاراً)
+    bool shouldChange = false;
+
+    if (lastChange == null) {
+      shouldChange = true;
+    } else {
+      final sameDay = lastChange.day == now.day &&
+          lastChange.month == now.month &&
+          lastChange.year == now.year;
+      final wasNight = lastChange.hour >= 18 || lastChange.hour < 6;
+
+      // تغيير الثيم إذا:
+      // 1. يوم مختلف، أو
+      // 2. نفس اليوم ولكن تغيرت الفترة (من نهار لليل أو العكس)
+      shouldChange = !sameDay || (wasNight != isNight);
+    }
+
+    if (shouldChange) {
+      if (isNight && !isDarkMode.value) {
+        // التحول للوضع المظلم
+        await videoController.seekTo(Duration.zero);
+        isVideoPlaying.value = true;
+        await videoController.play();
+      } else if (!isNight && isDarkMode.value) {
+        // التحول للوضع العادي
+        await videoController.seekTo(const Duration(seconds: 5));
+        isVideoPlaying.value = true;
+        await videoController.play();
+      }
+
+      // حفظ وقت آخر تغيير
+      await _storage.saveLastThemeChangeTime(now);
     }
   }
 

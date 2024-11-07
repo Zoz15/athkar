@@ -1,10 +1,9 @@
-import 'package:athkar/presentation/screens/home_screen.dart';
+import 'package:athkar/presentation/screens/splash_screen.dart';
 import 'package:athkar/data/datasources/local_storage.dart';
 import 'package:athkar/var.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:athkar/presentation/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
