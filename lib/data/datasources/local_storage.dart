@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorage {
   static const _dhikrKey = 'dhikr_list';
+  static const String _lastThemeChangeTimeKey = 'last_theme_change_time';
   final SharedPreferences _prefs;
 
   LocalStorage(this._prefs);
@@ -28,5 +29,14 @@ class LocalStorage {
 
   Future<void> saveDarkMode(bool isDark) async {
     await _prefs.setBool('darkMode', isDark);
+  }
+
+  Future<DateTime?> getLastThemeChangeTime() async {
+    final timestamp = _prefs.getInt(_lastThemeChangeTimeKey);
+    return timestamp != null ? DateTime.fromMillisecondsSinceEpoch(timestamp) : null;
+  }
+
+  Future<void> saveLastThemeChangeTime(DateTime time) async {
+    await _prefs.setInt(_lastThemeChangeTimeKey, time.millisecondsSinceEpoch);
   }
 }

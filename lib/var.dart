@@ -36,4 +36,5 @@ Widget chickImage = Image.asset(
 
 List<Widget> chickImages = [];
 
-const String mosqueVideo = 'assets/videos/mosque_transition.mp4';
+const String dayToNightVideo = 'assets/videos/day_to_night.mp4';
+const String nightToDayVideo = 'assets/videos/night_to_day.mp4';

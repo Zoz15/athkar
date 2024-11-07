@@ -24,26 +24,33 @@ class HomeScreen extends StatelessWidget {
       body: Stack(
         children: [
           // طبقة الفيديو
-          Positioned.fill(
-            child: Obx(() => controller.isVideoInitialized.value
-                ? AspectRatio(
-                    aspectRatio: controller.videoController.value.aspectRatio,
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: SizedBox(
-                        width: controller.videoController.value.size.width,
-                        height: controller.videoController.value.size.height,
-                        child: VideoPlayer(controller.videoController),
-                      ),
-                    ),
-                  )
-                : Container(color: Colors.black)),
+          GetBuilder<AppController>(
+            builder: (controller) {
+              if (!controller.isVideoInitialized.value) {
+                return Container(color: Theme.of(context).scaffoldBackgroundColor);
+              }
+              return Positioned.fill(
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: controller.videoController.value.size.width,
+                    height: controller.videoController.value.size.height,
+                    child: VideoPlayer(controller.videoController),
+                  ),
+                ),
+              );
+            },
           ),
-          // طبقة التعتيم للقراءة بشكل أفضل
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
-            ),
+          // طبقة التعتيم للفيديو
+          Obx(() => controller.isVideoPlaying.value
+            ? Positioned.fill(
+                child: AnimatedOpacity(
+                  opacity: 0.3,
+                  duration: const Duration(milliseconds: 300),
+                  child: Container(color: Colors.black),
+                ),
+              )
+            : const SizedBox.shrink()
           ),
           // محتوى التطبيق
           SafeArea(
@@ -368,7 +375,7 @@ class HomeScreen extends StatelessWidget {
               if (targetController.text.isEmpty) {
                 Get.snackbar(
                   'تنبيه',
-                  'الرجاء إدخال عدد المرات',
+                  'الرجاء إدخال ع��د المرات',
                   backgroundColor: Colors.red.withOpacity(0.1),
                   colorText: Colors.white,
                   snackPosition: SnackPosition.TOP,
@@ -493,7 +500,7 @@ class HomeScreen extends StatelessWidget {
                             Get.back();
                             Get.dialog(
                               AlertDialog(
-                                title: const Text('تأكيد الحذف'),
+                                title: const Text('أكيد الحذف'),
                                 content: const Text(
                                     'هل أنت متأكد من ذف هذا الكر؟'),
                                 actions: [
@@ -562,7 +569,7 @@ class HomeScreen extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Get.back(),
-                child: const Text('حسنا��'),
+                child: const Text('حسنا'),
               ),
             ],
           ),

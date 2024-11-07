@@ -4,6 +4,7 @@ import 'package:athkar/var.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:athkar/presentation/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    // Initialize LocalStorage
+    
     Get.put(LocalStorage(prefs));
     
     return GetMaterialApp(
@@ -48,7 +49,7 @@ class MyApp extends StatelessWidget {
           onSurface: Colors.white,
         ),
       ),
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }

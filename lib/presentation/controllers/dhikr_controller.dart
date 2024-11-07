@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:athkar/var.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -6,6 +8,7 @@ import 'package:athkar/models/dhikr_item.dart';
 import 'package:confetti/confetti.dart';
 import 'dart:math' show Random, pi;
 import 'package:video_player/video_player.dart';
+import 'package:flutter/services.dart';
 
 class AppController extends GetxController {
   final _storage = Get.find<LocalStorage>();
@@ -25,6 +28,12 @@ class AppController extends GetxController {
 
   late VideoPlayerController videoController;
   final isVideoInitialized = false.obs;
+  final isVideoPlaying = false.obs;
+
+  // وقت آخر تغيير للثيم
+  final lastThemeChangeTime = Rxn<DateTime>();
+
+  static const String themeTransitionVideo = 'assets/videos/theme_transition.mp4';
 
   bool get isNightTime {
     final now = DateTime.now();
@@ -33,49 +42,59 @@ class AppController extends GetxController {
   }
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
-    initializeVideoPlayer();
-    loadThemeMode();
-    changeBackground();
-    loadDhikrs();
+    await loadThemeMode();
+    await initializeVideo();
+    await loadDhikrs();
   }
 
-  Future<void> initializeVideoPlayer() async {
-    videoController = VideoPlayerController.asset(mosqueVideo);
-    await videoController.initialize();
-    
-    final duration = videoController.value.duration;
-    
-    // عند بدء التطبيق، تشغيل الفيديو والثيم بناءً على الوقت
-    if (isNightTime) {
-      // إذا كان ليلاً، نبدأ من النهار ونتحول لليل
-      await videoController.seekTo(Duration.zero); // نبدأ من الليل
-      videoController.play();
-      videoController.setPlaybackSpeed(1.0); // نتحرك للنهار
+  Future<void> initializeVideo() async {
+    try {
+      videoController = VideoPlayerController.asset(themeTransitionVideo);
+      await videoController.initialize();
       
-      await Future.delayed(duration);
-      videoController.pause();
+      // تحديد نقطة البداية الصحيحة للوضع المظلم
+      if (isDarkMode.value) {
+        // إذا كان الوضع مظلم، نضع الفيديو عند الثانية 5
+        await videoController.seekTo(const Duration(seconds: 5));
+      } else {
+        // إذا كان الوضع عادي، نضع الفيديو عند البداية
+        await videoController.seekTo(Duration.zero);
+      }
       
-      // تعيين الوضع المظلم
-      isDarkMode.value = true;
-      Get.changeThemeMode(ThemeMode.dark);
-    } else {
-      // إذا كان نهاراً، نبدأ من الليل ونتحول للنهار
-      await videoController.seekTo(duration); // نبدأ من النهار
-      videoController.play();
-      videoController.setPlaybackSpeed(-1.0); // نتحرك لليل
-      
-      await Future.delayed(duration);
-      videoController.pause();
-      
-      // تعيين الوضع العادي
-      isDarkMode.value = false;
-      Get.changeThemeMode(ThemeMode.light);
+      isVideoInitialized.value = true;
+      videoController.addListener(_videoListener);
+      update();
+    } catch (e) {
+      print('Error initializing video: $e');
     }
+  }
+
+  void _videoListener() {
+    if (!videoController.value.isPlaying) return;
     
-    isVideoInitialized.value = true;
-    update();
+    final position = videoController.value.position;
+    
+    if (!isDarkMode.value && position >= const Duration(seconds: 5)) {
+      // إيقاف عند الثانية 5 للوضع المظلم
+      videoController.pause();
+      videoController.seekTo(const Duration(seconds: 5));
+      isVideoPlaying.value = false;
+      isDarkMode.value = true;
+      _storage.saveDarkMode(true);
+      Get.changeThemeMode(ThemeMode.dark);
+      update();
+    } else if (isDarkMode.value && position >= const Duration(seconds: 10)) {
+      // إيقاف عند الثانية 10 للوضع العادي
+      videoController.pause();
+      videoController.seekTo(const Duration(seconds: 10));
+      isVideoPlaying.value = false;
+      isDarkMode.value = false;
+      _storage.saveDarkMode(false);
+      Get.changeThemeMode(ThemeMode.light);
+      update();
+    }
   }
 
   // دالة لتغيير الخلفية عشوائياً
@@ -245,7 +264,7 @@ class AppController extends GetxController {
               ],
             ),
           ),
-          // قصاصات من اليمين
+          // قصاصت من اليمين
           Align(
             alignment: Alignment.topRight,
             child: ConfettiWidget(
@@ -395,7 +414,7 @@ class AppController extends GetxController {
     Get.dialog(
       AlertDialog(
         title: const Text('تأكيد إعادة التعيين'),
-        content: const Text('هل أنت متأكد من إعادة تعيين العداد؟'),
+        content: const Text('هل أنت مأكد من إعادة تيين العداد؟'),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
@@ -418,44 +437,37 @@ class AppController extends GetxController {
 
   // تحميل حالة الثيم
   Future<void> loadThemeMode() async {
-    final darkMode = await _storage.getDarkMode();
-    isDarkMode.value = darkMode;
-    Get.changeThemeMode(darkMode ? ThemeMode.dark : ThemeMode.light);
+    isDarkMode.value = await _storage.getDarkMode();
+    Get.changeThemeMode(isDarkMode.value ? ThemeMode.dark : ThemeMode.light);
+    update();
   }
 
-  // تحديث الثيم
-  void toggleTheme() async {
-    isDarkMode.value = !isDarkMode.value;
-    _storage.saveDarkMode(isDarkMode.value);
-    
-    final duration = videoController.value.duration;
-    
-    if (isDarkMode.value) {
-      // التحول للوضع الليلي - من النهار لليل
-      await videoController.seekTo(duration); // نبدأ من النهار
-      videoController.play();
-      videoController.setPlaybackSpeed(-1.0); // نتحرك لليل
+  // تحديث الثيم يدوياً من الإعدادات
+  Future<void> toggleTheme() async {
+    try {
+      if (isDarkMode.value) {
+        // التحول للوضع العادي (من 5 إلى 10)
+        await videoController.seekTo(const Duration(seconds: 5));
+      } else {
+        // التحول للوضع المظلم (من 0 إلى 5)
+        await videoController.seekTo(Duration.zero);
+      }
       
-      await Future.delayed(duration);
-      videoController.pause();
-      
-      Get.changeThemeMode(ThemeMode.dark);
-    } else {
-      // التحول للوضع النهاري - من الليل للنهار
-      await videoController.seekTo(Duration.zero); // نبدأ من الليل
-      videoController.play();
-      videoController.setPlaybackSpeed(1.0); // نتحرك للنهار
-      
-      await Future.delayed(duration);
-      videoController.pause();
-      
-      Get.changeThemeMode(ThemeMode.light);
+      isVideoPlaying.value = true;
+      await videoController.play();
+      update();
+    } catch (e) {
+      print('Error in toggleTheme: $e');
+      isVideoPlaying.value = false;
+      update();
     }
   }
 
   @override
   void onClose() {
+    videoController.removeListener(_videoListener);
     videoController.dispose();
+    confettiController.dispose();
     super.onClose();
   }
 }
