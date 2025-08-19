@@ -2,7 +2,7 @@
 
 An elegant, responsive Flutter app for daily dhikr. Choose a dhikr, set a target, tap the digital counter, and enjoy subtle animations, progress, and a celebratory confetti effect when you reach your goal. The app remembers your progress locally and supports automatic day/night themes with a smooth video transition.
 
-<img src="assets/athkar%20app/Digital%20Tasbeeh%20Counter/digital-tasbeeh-counter-screen-shoot-black-05.png" alt="Athkar screenshot" width="420" />
+<img src="docs/screenshots/screenshot-1.png" alt="Athkar – home" width="420" />
 
 ### Features
 
@@ -22,8 +22,24 @@ An elegant, responsive Flutter app for daily dhikr. Choose a dhikr, set a target
 ### Screenshots
 
 <p>
-  <img src="assets/athkar%20app/Digital%20Tasbeeh%20Counter/digital-tasbeeh-counter-screen-shoot-black-05.png" alt="Counter – dark" width="280" />
-  <img src="assets/athkar%20app/Digital%20Tasbeeh%20Counter/digital-tasbeeh-counter-logo.png" alt="App logo" width="280" />
+  <img src="docs/screenshots/screenshot-1.png" alt="Screen 1" width="240" />
+  <img src="docs/screenshots/screenshot-2.png" alt="Screen 2" width="240" />
+  <img src="docs/screenshots/screenshot-3.png" alt="Screen 3" width="240" />
+  <img src="docs/screenshots/screenshot-4.png" alt="Screen 4" width="240" />
+  <img src="docs/screenshots/screenshot-5.png" alt="Screen 5" width="240" />
+  <img src="docs/screenshots/screenshot-6.png" alt="Screen 6" width="240" />
+  <img src="docs/screenshots/screenshot-7.png" alt="Screen 7" width="240" />
+  <img src="docs/screenshots/screenshot-8.png" alt="Screen 8" width="240" />
+  <img src="docs/screenshots/screenshot-9.png" alt="Screen 9" width="240" />
+  <img src="docs/screenshots/screenshot-10.png" alt="Screen 10" width="240" />
+  <img src="docs/screenshots/screenshot-11.png" alt="Screen 11" width="240" />
+  <img src="docs/screenshots/screenshot-12.png" alt="Screen 12" width="240" />
+  <img src="docs/screenshots/screenshot-13.png" alt="Screen 13" width="240" />
+  <img src="docs/screenshots/screenshot-14.png" alt="Screen 14" width="240" />
+  <img src="docs/screenshots/screenshot-15.png" alt="Screen 15" width="240" />
+  <img src="docs/screenshots/screenshot-16.png" alt="Screen 16" width="240" />
+  <img src="docs/screenshots/screenshot-17.png" alt="Screen 17" width="240" />
+  <img src="docs/screenshots/screenshot-18.png" alt="Screen 18" width="240" />
 </p>
 
 ### Getting started
