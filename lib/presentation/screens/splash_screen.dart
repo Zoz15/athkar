@@ -18,26 +18,22 @@ class SplashScreen extends StatelessWidget {
         child: Stack(
           children: [
             // صورة الأيقونة
-            Expanded(
-              child: Center(
-                child: Image.asset(
-                  'assets/splash screen/icon_w.png',
-                  width: 180,
-                  height: 180,
-                ),
+            Center(
+              child: Image.asset(
+                'assets/splash screen/icon_w.png',
+                width: 180,
+                height: 180,
               ),
             ),
             // صورة النص
-            Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).size.height / 10),
-                  child: Image.asset(
-                    'assets/splash screen/start.png',
-                    width: 200,
-                  ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).size.height / 10),
+                child: Image.asset(
+                  'assets/splash screen/start.png',
+                  width: 200,
                 ),
               ),
             ),

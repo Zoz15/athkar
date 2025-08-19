@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:athkar/models/dhikr_item.dart';
 import 'package:athkar/var.dart';
-import 'package:confetti/confetti.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
@@ -27,7 +26,8 @@ class HomeScreen extends StatelessWidget {
           GetBuilder<AppController>(
             builder: (controller) {
               if (!controller.isVideoInitialized.value) {
-                return Container(color: Theme.of(context).scaffoldBackgroundColor);
+                return Container(
+                    color: Theme.of(context).scaffoldBackgroundColor);
               }
               return Positioned.fill(
                 child: FittedBox(
@@ -43,15 +43,14 @@ class HomeScreen extends StatelessWidget {
           ),
           // طبقة التعتيم للفيديو
           Obx(() => controller.isVideoPlaying.value
-            ? Positioned.fill(
-                child: AnimatedOpacity(
-                  opacity: 0.3,
-                  duration: const Duration(milliseconds: 300),
-                  child: Container(color: Colors.black),
-                ),
-              )
-            : const SizedBox.shrink()
-          ),
+              ? Positioned.fill(
+                  child: AnimatedOpacity(
+                    opacity: 0.3,
+                    duration: const Duration(milliseconds: 300),
+                    child: Container(color: Colors.black),
+                  ),
+                )
+              : const SizedBox.shrink()),
           // محتوى التطبيق
           SafeArea(
             child: SingleChildScrollView(
@@ -67,7 +66,7 @@ class HomeScreen extends StatelessWidget {
                     const Spacer(),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 40),
-                      child: _buildCounter(),
+                      child: _buildCounter(context),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -81,7 +80,6 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-    final controller = Get.find<AppController>();
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: ClipRRect(
@@ -112,7 +110,8 @@ class HomeScreen extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20),
@@ -148,18 +147,18 @@ class HomeScreen extends StatelessWidget {
               leading: const Icon(Icons.dark_mode),
               title: const Text('الوضع المظلم'),
               trailing: Obx(() => Switch(
-                value: controller.isDarkMode.value,
-                onChanged: (value) {
-                  controller.toggleTheme();
-                  Get.back();
-                },
-              )),
+                    value: controller.isDarkMode.value,
+                    onChanged: (value) {
+                      controller.toggleTheme();
+                      Get.back();
+                    },
+                  )),
             ),
             // يمكنك إضافة المزيد من الإعدادات هنا
-            
+
             // إضافة مسافة
             const SizedBox(height: 20),
-            
+
             // إضافة النص في الأسفل
             const Text(
               'Made with ❤️ by Axon',
@@ -501,8 +500,8 @@ class HomeScreen extends StatelessWidget {
                             Get.dialog(
                               AlertDialog(
                                 title: const Text('أكيد الحذف'),
-                                content: const Text(
-                                    'هل أنت متأكد من ذف هذا الكر؟'),
+                                content:
+                                    const Text('هل أنت متأكد من ذف هذا الكر؟'),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Get.back(),
@@ -539,54 +538,22 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _showCelebration() {
-    final confettiController =
-        ConfettiController(duration: const Duration(seconds: 2));
-    confettiController.play();
-
-    Get.dialog(
-      Stack(
-        children: [
-          ConfettiWidget(
-            confettiController: confettiController,
-            blastDirectionality: BlastDirectionality.explosive,
-            particleDrag: 0.05,
-            emissionFrequency: 0.05,
-            numberOfParticles: 50,
-            gravity: 0.1,
-            shouldLoop: false,
-            colors: const [
-              Colors.green,
-              Colors.blue,
-              Colors.pink,
-              Colors.orange,
-              Colors.purple
-            ],
-          ),
-          AlertDialog(
-            title: const Text('مبروك!'),
-            content: const Text('لقد أكملت الذكر'),
-            actions: [
-              TextButton(
-                onPressed: () => Get.back(),
-                child: const Text('حسنا'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCounter() {
+  Widget _buildCounter(BuildContext context) {
     final controller = Get.find<AppController>();
+    final screenWidth = MediaQuery.of(context).size.width;
+    const double smallIconSize = 50;
+    const double smallIconHorizontalMargins = 32; // 16 left + 16 right
+    final double availableForCircle =
+        screenWidth - 2 * (smallIconSize + smallIconHorizontalMargins);
+    final double circleSize = max(120.0, min(280.0, availableForCircle));
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _buildSmallCounterIcons(() => controller.setClickerImageIndex(),
             'assets/images/colors.png'),
         ClipRRect(
-          borderRadius: BorderRadius.circular(140),
+          borderRadius: BorderRadius.circular(circleSize / 2),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: GestureDetector(
@@ -595,8 +562,8 @@ class HomeScreen extends StatelessWidget {
                 HapticFeedback.mediumImpact();
               },
               child: Container(
-                height: 280,
-                width: 280,
+                height: circleSize,
+                width: circleSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.black.withOpacity(0.2),
@@ -609,47 +576,49 @@ class HomeScreen extends StatelessWidget {
                   alignment: Alignment.center,
                   children: [
                     Obx(() => AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 500),
-                      transitionBuilder: (Widget child, Animation<double> animation) {
-                        return RotationTransition(
-                          turns: Tween<double>(
-                            begin: 0.5,
-                            end: 1.0,
-                          ).animate(animation),
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: child,
+                          duration: const Duration(milliseconds: 500),
+                          transitionBuilder:
+                              (Widget child, Animation<double> animation) {
+                            return RotationTransition(
+                              turns: Tween<double>(
+                                begin: 0.5,
+                                end: 1.0,
+                              ).animate(animation),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: Image.asset(
+                            clickerImages[controller.clickerImageIndex.value],
+                            key: ValueKey<int>(
+                                controller.clickerImageIndex.value),
+                            width: circleSize * 0.86,
+                            height: circleSize * 0.86,
                           ),
-                        );
-                      },
-                      child: Image.asset(
-                        clickerImages[controller.clickerImageIndex.value],
-                        key: ValueKey<int>(controller.clickerImageIndex.value),
-                        width: 240,
-                        height: 240,
-                      ),
-                    )),
+                        )),
                     Obx(() => AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 300),
-                      style: TextStyle(
-                        fontSize: 40,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 10,
-                            color: Colors.black.withOpacity(0.3),
-                            offset: const Offset(2, 2),
+                          duration: const Duration(milliseconds: 300),
+                          style: TextStyle(
+                            fontSize: 40,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 10,
+                                color: Colors.black.withOpacity(0.3),
+                                offset: const Offset(2, 2),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 62),
-                        child: Text(
-                          '${controller.clickerCounter.value}',
-                        ),
-                      ),
-                    )),
+                          child: Padding(
+                            padding: EdgeInsets.only(bottom: circleSize * 0.22),
+                            child: Text(
+                              '${controller.clickerCounter.value}',
+                            ),
+                          ),
+                        )),
                   ],
                 ),
               ),
